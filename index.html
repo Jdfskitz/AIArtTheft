@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reported Art Data</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+      background: #f9f9f9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #fff;
+      box-shadow: 0 0 5px #ccc;
+    }
+    th, td {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #0078D7;
+      color: white;
+    }
+    button {
+      background-color: #0078D7;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    button:hover {
+      background-color: #005a9e;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Reported Art Data</h1>
+
+  <table id="data-table">
+    <!-- Table gets populated by JS -->
+  </table>
+
+  <script>
+    async function fetchAndDisplayCSV() {
+      const csvUrl = 'https://docs.google.com/spreadsheets/d/1MOkjiGvyUb6NBznpJp2a4QU17ar5YrhX-iBY6yFvYxU/export?format=csv&gid=1140628283';
+      const reportFormUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSf2rcqv8d337Wqh6qE2gile9f254AKiIDjSkIVzJEFyDRjZoQ/viewform?usp=header'; // <<== REPLACE this with your actual form URL
+
+      try {
+        const res = await fetch(csvUrl);
+        if (!res.ok) throw new Error('Network response was not ok');
+        const csvText = await res.text();
+
+        // Parse CSV
+        const rows = csvText.trim().split('\n').map(row => {
+          // Handle CSV cells with commas inside quotes:
+          // For simplicity, assuming no commas in data here. 
+          // For complex CSV, consider a CSV parser library.
+          return row.split(',');
+        });
+
+        const table = document.getElementById('data-table');
+        table.innerHTML = '';
+
+        // Create header row with an extra column for Report button
+        const headerRow = document.createElement('tr');
+        rows[0].forEach(header => {
+          const th = document.createElement('th');
+          th.textContent = header;
+          headerRow.appendChild(th);
+        });
+        const thReport = document.createElement('th');
+        thReport.textContent = 'Report';
+        headerRow.appendChild(thReport);
+        table.appendChild(headerRow);
+
+        // Create data rows
+        for (let i = 1; i < rows.length; i++) {
+          const tr = document.createElement('tr');
+          rows[i].forEach(cell => {
+            const td = document.createElement('td');
+            td.textContent = cell;
+            tr.appendChild(td);
+          });
+
+          // Add report button column
+          const tdReport = document.createElement('td');
+          const btn = document.createElement('button');
+          btn.textContent = "Report";
+          btn.onclick = () => {
+            window.open(reportFormUrl, '_blank');
+          };
+          tdReport.appendChild(btn);
+          tr.appendChild(tdReport);
+
+          table.appendChild(tr);
+        }
+
+      } catch (err) {
+        console.error('Error fetching or parsing CSV:', err);
+        const table = document.getElementById('data-table');
+        table.innerHTML = '<tr><td colspan="100%">Failed to load data. Please try again later.</td></tr>';
+      }
+    }
+
+    fetchAndDisplayCSV();
+  </script>
+</body>
+</html>
